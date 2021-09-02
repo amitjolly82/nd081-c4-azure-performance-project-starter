@@ -20,7 +20,7 @@ from opencensus.ext.azure.trace_exporter import AzureExporter
 from opencensus.trace.samplers import ProbabilitySampler
 from opencensus.trace.tracer import Tracer
 from opencensus.ext.flask.flask_middleware import FlaskMiddleware
-from opencensus.ext.azure.log_exporter import AzureLogHandler, AzureEventHandler
+
 
 app = Flask(__name__)
 
@@ -36,12 +36,8 @@ middleware = FlaskMiddleware(
 logger = logging.getLogger(__name__)
 logger.addHandler(AzureLogHandler(connection_string='InstrumentationKey=8535502a-e4ea-4ff3-9c3e-88a2bfa3ab5a'))
 
-logHandler = AzureLogHandler(connection_string='InstrumentationKey=8535502a-e4ea-4ff3-9c3e-88a2bfa3ab5a')
-
-eventHandler = AzureEventHandler(connection_string='InstrumentationKey=8535502a-e4ea-4ff3-9c3e-88a2bfa3ab5a')
 logger.setLevel(INFO)
-logger.addHandler(logHandler)
-logger.addHandler(eventHandler)
+
 
 # Metrics TODO: Setup exporter
 exporter = metrics_exporter.new_metrics_exporter(
