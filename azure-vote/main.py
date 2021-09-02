@@ -21,34 +21,30 @@ from opencensus.trace.samplers import ProbabilitySampler
 from opencensus.trace.tracer import Tracer
 from opencensus.ext.flask.flask_middleware import FlaskMiddleware
 
-INSIGHTS_CONN_STR = 'InstrumentationKey=8535502a-e4ea-4ff3-9c3e-88a2bfa3ab5a'
-
-# Logging
-logger = logging.getLogger(__name__)
-logger.addHandler(
-    AzureLogHandler(connection_string=INSIGHTS_CONN_STR)
-)
-logger.setLevel(logging.INFO)
-
-# Metrics
-exporter = metrics_exporter.new_metrics_exporter(
-    enable_standard_metrics=True,
-    connection_string=INSIGHTS_CONN_STR
-)
-
-# Tracing
-tracer = Tracer(
-    exporter=AzureExporter(connection_string=INSIGHTS_CONN_STR),
-    sampler=ProbabilitySampler(1.0),
-)
-
 app = Flask(__name__)
 
 # Requests
 middleware = FlaskMiddleware(
     app,
-    exporter=AzureExporter(connection_string=INSIGHTS_CONN_STR),
+    exporter=AzureExporter(connection_string='InstrumentationKey=8535502a-e4ea-4ff3-9c3e-88a2bfa3ab5a'),
     sampler=ProbabilitySampler(rate=1.0),
+)
+# TODO: Setup flask middleware
+
+# Logging
+logger = logging.getLogger(__name__)
+logger.addHandler(AzureLogHandler(connection_string='InstrumentationKey=8535502a-e4ea-4ff3-9c3e-88a2bfa3ab5a'))
+
+# Metrics TODO: Setup exporter
+exporter = metrics_exporter.new_metrics_exporter(
+    enable_standard_metrics=True,
+    connection_string='InstrumentationKey=8535502a-e4ea-4ff3-9c3e-88a2bfa3ab5a'
+)
+# Tracing
+tracer = Tracer(
+    exporter = AzureExporter(
+        connection_string = 'InstrumentationKey=8535502a-e4ea-4ff3-9c3e-88a2bfa3ab5a'),
+    sampler = ProbabilitySampler(1.0),
 )
 
 # Load configurations from environment or config file
@@ -85,33 +81,34 @@ def index():
 
     if request.method == 'GET':
 
-         # Get current values
-        vote1 = r.get(button1).decode('utf-8')
+        # Get current values
         # TODO: use tracer object to trace cat vote
-        tracer.span(name="cat-vote")
+        vote1 = r.get(button1).decode('utf-8')
+        tracer.span(name="CatsVote")
+        # TODO: use tracer object to trace dog vote        
         vote2 = r.get(button2).decode('utf-8')
-        # TODO: use tracer object to trace dog vote
-        tracer.span(name="dog-vote")
+        tracer.span(name="DogsVote")
+
 
         # Return index with values
         return render_template("index.html", value1=int(vote1), value2=int(vote2), button1=button1, button2=button2, title=title)
+
     elif request.method == 'POST':
 
         if request.form['vote'] == 'reset':
 
             # Empty table and return results
+            r.set(button1,0)
+            r.set(button2,0)
             vote1 = r.get(button1).decode('utf-8')
             properties = {'custom_dimensions': {'Cats Vote': vote1}}
+            logger.warning('Cats', extra=properties)
             # TODO: use logger object to log cat vote
-            logger.warning('cat-vote', extra=properties)
 
             vote2 = r.get(button2).decode('utf-8')
             properties = {'custom_dimensions': {'Dogs Vote': vote2}}
+            logger.warning('Dogs', extra=properties)
             # TODO: use logger object to log dog vote
-            logger.warning('dog-vote', extra=properties)
-
-            r.set(button1,0)
-            r.set(button2,0)
 
             return render_template("index.html", value1=int(vote1), value2=int(vote2), button1=button1, button2=button2, title=title)
 
