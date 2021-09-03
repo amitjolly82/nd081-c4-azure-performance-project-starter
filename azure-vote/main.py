@@ -39,7 +39,7 @@ logger.addHandler(AzureLogHandler(connection_string='InstrumentationKey=8535502a
 logHandler = AzureLogHandler(connection_string='InstrumentationKey=8535502a-e4ea-4ff3-9c3e-88a2bfa3ab5a')
 eventHandler = AzureEventHandler(connection_string='InstrumentationKey=8535502a-e4ea-4ff3-9c3e-88a2bfa3ab5a')
 #handler.setLevel(INFO)
-logger.setLevel(DEBUG)
+
 logger.addHandler(logHandler)
 logger.addHandler(eventHandler)
 
