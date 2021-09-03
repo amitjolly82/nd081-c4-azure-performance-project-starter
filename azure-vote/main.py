@@ -10,6 +10,7 @@ from datetime import datetime
 # App Insights
 # TODO: Import required libraries for App Insights
 from opencensus.ext.azure.log_exporter import AzureLogHandler
+from opencensus.ext.azure.log_exporter import AzureEventHandler
 from opencensus.ext.azure import metrics_exporter
 from opencensus.stats import aggregation as aggregation_module
 from opencensus.stats import measure as measure_module
@@ -34,9 +35,13 @@ middleware = FlaskMiddleware(
 
 # Logging
 logger = logging.getLogger(__name__)
-
+logger.addHandler(AzureLogHandler(connection_string='InstrumentationKey=8535502a-e4ea-4ff3-9c3e-88a2bfa3ab5a'))
+logHandler = AzureLogHandler(connection_string='InstrumentationKey=8535502a-e4ea-4ff3-9c3e-88a2bfa3ab5a')
+eventHandler = AzureEventHandler(connection_string='InstrumentationKey=8535502a-e4ea-4ff3-9c3e-88a2bfa3ab5a')
+#handler.setLevel(INFO)
 logger.setLevel(INFO)
-
+logger.addHandler(logHandler)
+logger.addHandler(eventHandler)
 
 # Metrics TODO: Setup exporter
 exporter = metrics_exporter.new_metrics_exporter(
@@ -88,13 +93,11 @@ def index():
         # TODO: use tracer object to trace cat vote
         vote1 = r.get(button1).decode('utf-8')
         tracer.span(name="CatsVote")
-        with tracer.span(name='CatsVote'): # <-- A dependency telemetry item will be sent for this span "foo"
-        print('Hello, cat!')
+      
         # TODO: use tracer object to trace dog vote        
         vote2 = r.get(button2).decode('utf-8')
         tracer.span(name="DogsVote")
-        with tracer.span(name='DogsVote'): # <-- A dependency telemetry item will be sent for this span "foo"
-        print('Hello, dog!')
+       
         
         # Return index with values
         return render_template("index.html", value1=int(vote1), value2=int(vote2), button1=button1, button2=button2, title=title)
